@@ -7,13 +7,31 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class VatRates {
-    public static void printCountries(List<Country> listOfCountries) {
+    public static void print(List<Country> listOfCountries) {
         listOfCountries.forEach(country ->
                 System.out.println(country.getDescription()));
     }
 
-    public static void printCountriesByVat(List<Country> listOfCountries,
-                                    BigDecimal vatStd) {
+    public static void printByVat(List<Country> listOfCountries,
+                                           BigDecimal vatStd) {
+        List<Country> filteredList =
+                VatRatesList.filterVat(listOfCountries, vatStd);
+        filteredList.forEach(country ->
+                System.out.println(country.getDescription()));
+    }
+
+    public static void printByVatDescending(List<Country> listOfCountries,
+                                  BigDecimal vatStd) {
+        List<Country> filteredList =
+                VatRatesList.filterVat(listOfCountries, vatStd);
+        List<Country> sortedListByVatStd =
+                VatRatesList.sortByVatStdDescending(filteredList);
+        sortedListByVatStd.forEach(country ->
+                System.out.println(country.getDescription()));
+    }
+
+    public static void printByVatWithLower(List<Country> listOfCountries,
+                                           BigDecimal vatStd) {
         List<Country> filteredList =
                 VatRatesList.filterVat(listOfCountries, vatStd);
         List<Country> sortedListByVatStd =
@@ -39,9 +57,13 @@ public class VatRates {
             List<Country> listOfCountries = VatRatesList
                     .importFromFile(Settings.getInputFile());
 //            VatRatesList vatRatesList = new VatRatesList(listOfCountries);
-            printCountries(listOfCountries);
+            print(listOfCountries);
             System.out.println("---");
-            printCountriesByVat(listOfCountries, BigDecimal.valueOf(20));
+            printByVat(listOfCountries, BigDecimal.valueOf(20));
+            System.out.println("---");
+            printByVatDescending(listOfCountries, BigDecimal.valueOf(20));
+            System.out.println("---");
+            printByVatWithLower(listOfCountries, BigDecimal.valueOf(20));
         } catch (VatRatesException e) {
             logger.log(Level.WARNING, e.getClass().getName() + ": "
                     + e.getLocalizedMessage());
