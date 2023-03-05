@@ -61,9 +61,9 @@ public class VatRatesList {
     }
 
     public void printItems(List<Country> listOfCountries) {
-        for (Country country : listOfCountries) {
-            System.out.println(country.getDescription());
-        }
+        listOfCountries
+                .forEach(country ->
+                        System.out.println(country.getDescription()));
     }
 
     public void printItemsVerbose(List<Country> listOfCountries) {
