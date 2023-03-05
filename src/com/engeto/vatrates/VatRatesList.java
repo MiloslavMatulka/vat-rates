@@ -17,7 +17,24 @@ public class VatRatesList {
         this.listOfCountries = listOfCountries;
     }
 
-    public List<Country> importFromFile(String fileName)
+    /**
+     * Filters a list of countries.  Only countries over the submitted value
+     * and without the special VAT are accepted.
+     *
+     * @param vatStd The standard VAT value used for filtering the list.
+     * @return Returns filtered list of countries.
+     */
+    public List<Country> filterVat(BigDecimal vatStd) {
+        return listOfCountries
+                .stream()
+                .filter(country ->
+                        country.getVatStandard()
+                                .compareTo(vatStd) > 0
+                                && !country.hasVatSpecial())
+                .toList();
+    }
+
+    public static List<Country> importFromFile(String fileName)
             throws VatRatesException {
         List<Country> list = new ArrayList<>();
         File input = new File(fileName);
@@ -60,38 +77,42 @@ public class VatRatesList {
                 vatReduced, hasVatSpecial);
     }
 
-    public void printItems(List<Country> listOfCountries) {
-        listOfCountries
-                .forEach(country ->
-                        System.out.println(country.getDescription()));
+    public void printCountries() {
+        listOfCountries.forEach(country ->
+                System.out.println(country.getDescription()));
     }
 
-    public void printItemsVerbose(List<Country> listOfCountries) {
-//        for (Country country : listOfCountries) {
-//            System.out.println(country.getDescriptionVerbose());
-//        }
-//        System.out.println("====================");
-//        System.out.println("Sazba VAT " + Settings.getVatLimit()
-//                + " % nebo nižší nebo používají speciální sazbu: ");
-        listOfCountries.stream()
-                .filter(country ->
-                        country.getVatStandard()
-                                .compareTo(Settings.getVatLimit()) > 0
-                        && !country.hasVatSpecial())
+    public void printCountriesByVat(BigDecimal vatStd) {
+        List<Country> filteredList = filterVat(vatStd);
+        List<Country> sortedListByVatStd =
+                sortByVatStdDescending(filteredList);
+        sortedListByVatStd.forEach(country ->
+                System.out.println(country.getDescriptionVerbose()));
+
+        List<Country> subtractedList = subtractFilteredVat(sortedListByVatStd);
+        List<Country> sortedListByCode = sortByCode(subtractedList);
+        System.out.println("====================\n"
+                + "Sazba VAT " + vatStd + " % nebo nižší nebo používají "
+                + "speciální sazbu: " + sortedListByCode.stream()
+                        .map(Country::getCodeOfCountry)
+                        .collect(Collectors.joining(", ")));
+    }
+
+    public List<Country> sortByCode(List<Country> countryList) {
+        return countryList.stream()
+                .sorted(Comparator.comparing(Country::getCodeOfCountry))
+                .toList();
+    }
+
+    public List<Country> sortByVatStdDescending(List<Country> countryList) {
+        return countryList.stream()
                 .sorted(Comparator.comparing(Country::getVatStandard)
-                        .reversed())
-                .forEach(country ->
-                        System.out.println(country.getDescriptionVerbose()));
-        System.out.println("====================");
-        String countryCodesFiltered = listOfCountries.stream().filter(country ->
-                country.getVatStandard()
-                        .compareTo(Settings.getVatLimit()) <= 0
-                || country.hasVatSpecial())
-                .map(Country::getCodeOfCountry)
-        .sorted()
-        .collect(Collectors.joining(", "));
-        System.out.println("Sazba VAT " + Settings.getVatLimit()
-                + " % nebo nižší nebo používají speciální sazbu: "
-                + countryCodesFiltered);
+                        .reversed()).toList();
+    }
+
+    public List<Country> subtractFilteredVat(List<Country> subList) {
+        return listOfCountries.stream()
+                .filter(country -> !subList.contains(country))
+                .toList();
     }
 }
