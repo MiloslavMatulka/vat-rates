@@ -3,8 +3,12 @@ package com.engeto.vatrates;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Scanner;
 
 public class VatRatesList {
     private List<Country> listOfCountries;
@@ -27,7 +31,6 @@ public class VatRatesList {
         File input = new File(fileName);
         long lineNumber = 0L;
         try (Scanner scanner = new Scanner(input)) {
-//            scanner.useLocale(Locale.of("cs"));
             while (scanner.hasNextLine()) {
                 ++lineNumber;
                 String record = scanner.nextLine();
@@ -64,39 +67,6 @@ public class VatRatesList {
                 vatReduced, hasVatSpecial);
     }
 
-    public void printCountries() throws VatRatesException {
-        if (listOfCountries.size() == 0) {
-            throw new VatRatesException("Prázdný seznam, hodnoty nejsou "
-                    + "k dispozici");
-        } else {
-            listOfCountries.forEach(country ->
-                    System.out.println(country.getDescription()));
-        }
-    }
-
-    public void printCountriesByVat(BigDecimal vatStd)
-            throws VatRatesException {
-        if (listOfCountries.size() == 0) {
-            throw new VatRatesException("Prázdný seznam, hodnoty nejsou "
-                    + "k dispozici");
-        } else {
-            List<Country> filteredList = filterVat(vatStd);
-            List<Country> sortedListByVatStd =
-                    sortByVatStdDescending(filteredList);
-            sortedListByVatStd.forEach(country ->
-                    System.out.println(country.getDescriptionVerbose()));
-
-            List<Country> subtractedList =
-                    subtractFilteredVat(sortedListByVatStd);
-            List<Country> sortedListByCode = sortByCode(subtractedList);
-            System.out.println("====================\n"
-                    + "Sazba VAT " + vatStd + " % nebo nižší nebo používají "
-                    + "speciální sazbu: " + sortedListByCode.stream()
-                    .map(Country::getCodeOfCountry)
-                    .collect(Collectors.joining(", ")));
-        }
-    }
-
     /**
      * Filters a list of countries.  Only countries over the submitted value
      * and without the special VAT are accepted.
@@ -104,7 +74,8 @@ public class VatRatesList {
      * @param vatStd The standard VAT value used for filtering the list.
      * @return Returns filtered list of countries.
      */
-    private List<Country> filterVat(BigDecimal vatStd) {
+    public static List<Country> filterVat(List<Country> listOfCountries,
+                                          BigDecimal vatStd) {
         return listOfCountries
                 .stream()
                 .filter(country ->
@@ -114,19 +85,21 @@ public class VatRatesList {
                 .toList();
     }
 
-    private List<Country> sortByCode(List<Country> countryList) {
-        return countryList.stream()
+    public static List<Country> sortByCode(List<Country> listOfCountries) {
+        return listOfCountries.stream()
                 .sorted(Comparator.comparing(Country::getCodeOfCountry))
                 .toList();
     }
 
-    private List<Country> sortByVatStdDescending(List<Country> countryList) {
-        return countryList.stream()
+    public static List<Country> sortByVatStdDescending(
+            List<Country> listOfCountries) {
+        return listOfCountries.stream()
                 .sorted(Comparator.comparing(Country::getVatStandard)
                         .reversed()).toList();
     }
 
-    private List<Country> subtractFilteredVat(List<Country> subList) {
+    public static List<Country> subtractFilteredVat(
+            List<Country> listOfCountries,List<Country> subList) {
         return listOfCountries.stream()
                 .filter(country -> !subList.contains(country))
                 .toList();
