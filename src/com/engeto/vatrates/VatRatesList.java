@@ -7,7 +7,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class VatRatesList {
-    private List<Country> listOfCountries = new ArrayList<>();
+    private List<Country> listOfCountries;
+
+    public VatRatesList(List<Country> listOfCountries) {
+        this.listOfCountries = listOfCountries;
+    }
 
     public List<Country> getListOfCountries() {
         return new ArrayList<>(listOfCountries);

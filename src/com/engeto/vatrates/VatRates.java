@@ -8,10 +8,10 @@ import java.util.logging.Logger;
 public class VatRates {
     public static void main(String[] args) {
         Logger logger = Logger.getLogger("VAT rates");
-        VatRatesList vatRatesList = new VatRatesList();
         try {
             List<Country> listOfCountries = VatRatesList
                     .importFromFile(Settings.getInputFile());
+            VatRatesList vatRatesList = new VatRatesList(listOfCountries);
             vatRatesList.setListOfCountries(listOfCountries);
             vatRatesList.printCountries();
             System.out.println("---");
