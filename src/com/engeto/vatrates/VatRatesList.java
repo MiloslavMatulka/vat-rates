@@ -42,31 +42,20 @@ public class VatRatesList {
         Scanner scanner = new Scanner(data);
         scanner.useLocale(Locale.of("cs"));
         scanner.useDelimiter(Settings.getDelimiter());
+
         String codeOfCountry = scanner.next();
         String nameOfCountry = scanner.next();
-//        try {
-        BigDecimal vatStandard = scanner.nextBigDecimal();
-        BigDecimal vatReduced = scanner.nextBigDecimal();
-//        } catch (InputMismatchException e) {
-//            throw new VatRatesException("Nesprávný formát čísla; "
-//                    + e.getLocalizedMessage());
-//        }
+        BigDecimal vatStandard = null;
+        BigDecimal vatReduced = null;
+        try {
+        vatStandard = scanner.nextBigDecimal();
+        vatReduced = scanner.nextBigDecimal();
+        } catch (InputMismatchException e) {
+            throw new VatRatesException("Nesprávný formát čísla; "
+                    + e.getLocalizedMessage());
+        }
         boolean hasVatSpecial = scanner.nextBoolean();
-//        String[] items = data.split(Settings.getDelimiter());
-//        String codeOfCountry = items[0];
-//        String nameOfCountry = items[1];
-//        BigDecimal vatStandard = null;
-//        BigDecimal vatReduced = null;
-//        Scanner scanner = null;
-//        try {
-////            scanner.useLocale(Locale.of("cs"));
-//            vatStandard = new BigDecimal(items[2]);
-//            vatReduced = new BigDecimal(items[3]);
-//        } catch (NumberFormatException e) {
-//            throw new VatRatesException("Not a number; "
-//                    + e.getLocalizedMessage());
-//        }
-//        boolean hasVatSpecial = Boolean.parseBoolean(items[4]);
+
         return new Country(codeOfCountry, nameOfCountry, vatStandard,
                 vatReduced, hasVatSpecial);
     }
