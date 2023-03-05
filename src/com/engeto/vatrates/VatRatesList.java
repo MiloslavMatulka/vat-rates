@@ -17,23 +17,6 @@ public class VatRatesList {
         this.listOfCountries = listOfCountries;
     }
 
-    /**
-     * Filters a list of countries.  Only countries over the submitted value
-     * and without the special VAT are accepted.
-     *
-     * @param vatStd The standard VAT value used for filtering the list.
-     * @return Returns filtered list of countries.
-     */
-    public List<Country> filterVat(BigDecimal vatStd) {
-        return listOfCountries
-                .stream()
-                .filter(country ->
-                        country.getVatStandard()
-                                .compareTo(vatStd) > 0
-                                && !country.hasVatSpecial())
-                .toList();
-    }
-
     public static List<Country> importFromFile(String fileName)
             throws VatRatesException {
         List<Country> list = new ArrayList<>();
@@ -77,40 +60,69 @@ public class VatRatesList {
                 vatReduced, hasVatSpecial);
     }
 
-    public void printCountries() {
-        listOfCountries.forEach(country ->
-                System.out.println(country.getDescription()));
+    public void printCountries() throws VatRatesException {
+        if (listOfCountries.size() == 0) {
+            throw new VatRatesException("Prázdný seznam, hodnoty nejsou "
+                    + "k dispozici");
+        } else {
+            listOfCountries.forEach(country ->
+                    System.out.println(country.getDescription()));
+        }
     }
 
-    public void printCountriesByVat(BigDecimal vatStd) {
-        List<Country> filteredList = filterVat(vatStd);
-        List<Country> sortedListByVatStd =
-                sortByVatStdDescending(filteredList);
-        sortedListByVatStd.forEach(country ->
-                System.out.println(country.getDescriptionVerbose()));
+    public void printCountriesByVat(BigDecimal vatStd)
+            throws VatRatesException {
+        if (listOfCountries.size() == 0) {
+            throw new VatRatesException("Prázdný seznam, hodnoty nejsou "
+                    + "k dispozici");
+        } else {
+            List<Country> filteredList = filterVat(vatStd);
+            List<Country> sortedListByVatStd =
+                    sortByVatStdDescending(filteredList);
+            sortedListByVatStd.forEach(country ->
+                    System.out.println(country.getDescriptionVerbose()));
 
-        List<Country> subtractedList = subtractFilteredVat(sortedListByVatStd);
-        List<Country> sortedListByCode = sortByCode(subtractedList);
-        System.out.println("====================\n"
-                + "Sazba VAT " + vatStd + " % nebo nižší nebo používají "
-                + "speciální sazbu: " + sortedListByCode.stream()
-                        .map(Country::getCodeOfCountry)
-                        .collect(Collectors.joining(", ")));
+            List<Country> subtractedList =
+                    subtractFilteredVat(sortedListByVatStd);
+            List<Country> sortedListByCode = sortByCode(subtractedList);
+            System.out.println("====================\n"
+                    + "Sazba VAT " + vatStd + " % nebo nižší nebo používají "
+                    + "speciální sazbu: " + sortedListByCode.stream()
+                    .map(Country::getCodeOfCountry)
+                    .collect(Collectors.joining(", ")));
+        }
     }
 
-    public List<Country> sortByCode(List<Country> countryList) {
+    /**
+     * Filters a list of countries.  Only countries over the submitted value
+     * and without the special VAT are accepted.
+     *
+     * @param vatStd The standard VAT value used for filtering the list.
+     * @return Returns filtered list of countries.
+     */
+    private List<Country> filterVat(BigDecimal vatStd) {
+        return listOfCountries
+                .stream()
+                .filter(country ->
+                        country.getVatStandard()
+                                .compareTo(vatStd) > 0
+                                && !country.hasVatSpecial())
+                .toList();
+    }
+
+    private List<Country> sortByCode(List<Country> countryList) {
         return countryList.stream()
                 .sorted(Comparator.comparing(Country::getCodeOfCountry))
                 .toList();
     }
 
-    public List<Country> sortByVatStdDescending(List<Country> countryList) {
+    private List<Country> sortByVatStdDescending(List<Country> countryList) {
         return countryList.stream()
                 .sorted(Comparator.comparing(Country::getVatStandard)
                         .reversed()).toList();
     }
 
-    public List<Country> subtractFilteredVat(List<Country> subList) {
+    private List<Country> subtractFilteredVat(List<Country> subList) {
         return listOfCountries.stream()
                 .filter(country -> !subList.contains(country))
                 .toList();
