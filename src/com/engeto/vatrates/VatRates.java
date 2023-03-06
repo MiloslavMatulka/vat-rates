@@ -3,6 +3,7 @@ package com.engeto.vatrates;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -84,18 +85,18 @@ public class VatRates {
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně:");
-            printByVat(listOfCountries, Settings.getVatLimit());
+            printByVat(listOfCountries, Settings.getVatDefault());
             System.out.println("---");
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně:");
-            printByVatDescending(listOfCountries, Settings.getVatLimit());
+            printByVatDescending(listOfCountries, Settings.getVatDefault());
             System.out.println("---");
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně, seznam zkratek, které ve výpisu "
                     + "nefigurují, vzestupně:");
-            printByVatWithOthers(listOfCountries, Settings.getVatLimit());
+            printByVatWithOthers(listOfCountries, Settings.getVatDefault());
             System.out.println("---");
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
@@ -103,14 +104,35 @@ public class VatRates {
                     + "nefigurují, vzestupně, státy rozděleny na 1 průchod:");
             printByVatWithOthersAltn(
                     VatRatesList.filterByVatOnePass(listOfCountries,
-                            Settings.getVatLimit()),
-                    Settings.getVatLimit());
+                            Settings.getVatDefault()),
+                    Settings.getVatDefault());
             System.out.println("---");
 
-            System.out.println("Exporting extract to file \""
+            System.out.println("Exporting an extract to file \""
                     + Settings.getResourcesPath() + "vat-over-20.txt\"");
+            VatRatesList.exportToFile(listOfCountries, Settings.getVatDefault());
             System.out.println("---");
-            VatRatesList.exportToFile(listOfCountries, Settings.getVatLimit());
+
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Zadej výši sazby DPH/VAT, podle které se má "
+                    + "filtrovat (pro desetinná čísla zadej \".\") >> ");
+            String input = scanner.nextLine();
+            BigDecimal inputVatLimit = null;
+            if (input.isEmpty()) {
+                inputVatLimit = Settings.getVatDefault();
+            } else {
+                try {
+                    inputVatLimit = new BigDecimal(input);
+                } catch (NumberFormatException e) {
+                    throw new VatRatesException("Nesprávný formát čísla; "
+                            + e.getLocalizedMessage());
+                }
+            }
+            printByVatWithOthersAltn(
+                    VatRatesList.filterByVatOnePass(listOfCountries,
+                            inputVatLimit),
+                    inputVatLimit);
+            VatRatesList.exportToFile(listOfCountries, inputVatLimit);
         } catch (VatRatesException e) {
             logger.log(Level.WARNING, e.getClass().getName() + ": "
                     + e.getLocalizedMessage());

@@ -11,7 +11,7 @@ public class Settings {
     private static final NumberFormat NUMBER_FORMAT =
             NumberFormat.getInstance(getLocale());
     private static final String RESOURCES_PATH = "res/";
-    private static final BigDecimal VAT_LIMIT = new BigDecimal(20);
+    private static final BigDecimal VAT_DEFAULT = new BigDecimal(20);
 
     //region Getters
     public static String getDelimiter() {
@@ -34,8 +34,8 @@ public class Settings {
         return RESOURCES_PATH;
     }
 
-    public static BigDecimal getVatLimit() {
-        return VAT_LIMIT;
+    public static BigDecimal getVatDefault() {
+        return VAT_DEFAULT;
     }
     //endregion
 }
