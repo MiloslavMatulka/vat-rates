@@ -3,9 +3,10 @@ package com.engeto.vatrates;
 import java.math.BigDecimal;
 
 public class Country {
+
     //region Attributes
     private String codeOfCountry;
-    boolean hasVatSpecial;
+    private boolean hasVatSpecial;
     private String nameOfCountry;
     private BigDecimal vatReduced;
     private BigDecimal vatStandard;
@@ -65,11 +66,12 @@ public class Country {
 
     public String getDescription() {
         return getNameOfCountry() + " (" + getCodeOfCountry() + "): "
-                + getVatStandard() + " %";
+                + Settings.getNumberFormat().format(getVatStandard()) + " %";
     }
 
     public String getDescriptionVerbose() {
         return getNameOfCountry() + " (" + getCodeOfCountry() + "): "
-                + getVatStandard() + " % (" + getVatReduced() + " %)";
+                + Settings.getNumberFormat().format(getVatStandard()) + " % ("
+                + Settings.getNumberFormat().format(getVatReduced()) + " %)";
     }
 }

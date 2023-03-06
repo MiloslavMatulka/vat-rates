@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.InputMismatchException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -31,17 +30,33 @@ public class VatRatesList {
         this.listOfCountries = listOfCountries;
     }
 
-//    public static void exportToFile(List<Country> data, BigDecimal vatStdLimit)
-//            throws VatRatesException {
-//        try (PrintWriter writer = new PrintWriter(new BufferedWriter(
-//                new FileWriter(new File(Settings.getResourcesPath()
-//                        + "vat-over-" + vatStdLimit + ".txt"))))) {
-//            data.stream().forEach(country ->
-//                    writer.println(country.getDescriptionVerbose()));
-//        } catch (IOException e) {
-//            throw new VatRatesException(e.getMessage());
-//        }
-//    }
+    public static void exportToFile(List<Country> data, BigDecimal vatStdLimit)
+            throws VatRatesException {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(
+                new FileWriter(Settings.getResourcesPath()
+                        + "vat-over-" + vatStdLimit + ".txt")))) {
+            Map<Boolean, List<Country>> mapOfCountries =
+                    filterByVatOnePass(data, vatStdLimit);
+            List<Country> listOverLimit = mapOfCountries.get(true);
+            List<Country> sortedListOverLimitDescending =
+                    VatRatesList.sortByVatStdDescending(listOverLimit);
+            sortedListOverLimitDescending.forEach(country ->
+                    writer.println(country.getDescriptionVerbose()));
+
+            List<Country> listOfOthers = mapOfCountries.get(false);
+            List<Country> sortedListOfOthers =
+                    VatRatesList.sortByCode(listOfOthers);
+            writer.println("====================\n"
+                    + "Sazba VAT " + vatStdLimit + " % nebo nižší nebo "
+                    + "používají speciální sazbu: "
+                    +  sortedListOfOthers.stream()
+                    .map(Country::getCodeOfCountry)
+                    .sorted()
+                    .collect(Collectors.joining(", ")));
+        } catch (IOException e) {
+            throw new VatRatesException(e.getMessage());
+        }
+    }
 
     public static List<Country> importFromFile(String fileName)
             throws VatRatesException {
@@ -65,7 +80,7 @@ public class VatRatesList {
 
     public static Country parseCountry(String data) throws VatRatesException {
         Scanner scanner = new Scanner(data);
-        scanner.useLocale(Locale.of("cs", "CZ"));
+        scanner.useLocale(Settings.getLocale());
         scanner.useDelimiter(Settings.getDelimiter());
 
         String codeOfCountry = scanner.next();
@@ -108,14 +123,9 @@ public class VatRatesList {
             BigDecimal vatStdLimit) {
         return listOfCountries
                 .stream()
-                .collect(Collectors.groupingBy(country -> {
-                    if (country.getVatStandard().compareTo(vatStdLimit) > 0
-                            && !country.hasVatSpecial()) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }));
+                .collect(Collectors.groupingBy(country ->
+                        country.getVatStandard().compareTo(vatStdLimit) > 0
+                        && !country.hasVatSpecial()));
     }
 
     public static List<Country> sortByCode(List<Country> listOfCountries) {

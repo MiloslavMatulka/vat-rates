@@ -52,9 +52,9 @@ public class VatRates {
                 .collect(Collectors.joining(", ")));
     }
 
-    public static void printByVatWithOthersOnePass(
+    public static void printByVatWithOthersAltn(
             Map<Boolean, List<Country>> mapOfCountries,
-            BigDecimal vatStd) {
+            BigDecimal vatStdLimit) {
         List<Country> listOverLimit = mapOfCountries.get(true);
         List<Country> sortedListOverLimitDescending =
                 VatRatesList.sortByVatStdDescending(listOverLimit);
@@ -65,7 +65,7 @@ public class VatRates {
         List<Country> sortedListOfOthers =
                 VatRatesList.sortByCode(listOfOthers);
         System.out.println("====================\n"
-        + "Sazba VAT " + vatStd + " % nebo nižší nebo používají "
+        + "Sazba VAT " + vatStdLimit + " % nebo nižší nebo používají "
         + "speciální sazbu: " +  sortedListOfOthers.stream()
                 .map(Country::getCodeOfCountry)
                         .sorted()
@@ -81,31 +81,36 @@ public class VatRates {
             System.out.println("Všechny země:");
             print(listOfCountries);
             System.out.println("---");
+
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně:");
-            printByVat(listOfCountries, BigDecimal.valueOf(20));
+            printByVat(listOfCountries, Settings.getVatLimit());
             System.out.println("---");
+
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně:");
-            printByVatDescending(listOfCountries, BigDecimal.valueOf(20));
+            printByVatDescending(listOfCountries, Settings.getVatLimit());
             System.out.println("---");
+
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně, seznam zkratek, které ve výpisu "
                     + "nefigurují, vzestupně:");
-            printByVatWithOthers(listOfCountries, BigDecimal.valueOf(20));
+            printByVatWithOthers(listOfCountries, Settings.getVatLimit());
             System.out.println("---");
+
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně, seznam zkratek, které ve výpisu "
                     + "nefigurují, vzestupně, státy rozděleny na 1 průchod:");
-            printByVatWithOthersOnePass(
+            printByVatWithOthersAltn(
                     VatRatesList.filterByVatOnePass(listOfCountries,
-                            BigDecimal.valueOf(20)),
-                    BigDecimal.valueOf(20));
+                            Settings.getVatLimit()),
+                    Settings.getVatLimit());
             System.out.println("---");
-//            System.out.println("Exporting extract to file \""
-//                    + Settings.getResourcesPath() + "vat-over-20.txt\"");
-//            System.out.println("---");
-//            VatRatesList.exportToFile(listOfCountries, BigDecimal.valueOf(20));
+
+            System.out.println("Exporting extract to file \""
+                    + Settings.getResourcesPath() + "vat-over-20.txt\"");
+            System.out.println("---");
+            VatRatesList.exportToFile(listOfCountries, Settings.getVatLimit());
         } catch (VatRatesException e) {
             logger.log(Level.WARNING, e.getClass().getName() + ": "
                     + e.getLocalizedMessage());
