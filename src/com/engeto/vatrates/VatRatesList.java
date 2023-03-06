@@ -1,14 +1,20 @@
 package com.engeto.vatrates;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class VatRatesList {
     private List<Country> listOfCountries;
@@ -24,6 +30,18 @@ public class VatRatesList {
     public void setListOfCountries(List<Country> listOfCountries) {
         this.listOfCountries = listOfCountries;
     }
+
+//    public static void exportToFile(List<Country> data, BigDecimal vatStdLimit)
+//            throws VatRatesException {
+//        try (PrintWriter writer = new PrintWriter(new BufferedWriter(
+//                new FileWriter(new File(Settings.getResourcesPath()
+//                        + "vat-over-" + vatStdLimit + ".txt"))))) {
+//            data.stream().forEach(country ->
+//                    writer.println(country.getDescriptionVerbose()));
+//        } catch (IOException e) {
+//            throw new VatRatesException(e.getMessage());
+//        }
+//    }
 
     public static List<Country> importFromFile(String fileName)
             throws VatRatesException {
@@ -47,7 +65,7 @@ public class VatRatesList {
 
     public static Country parseCountry(String data) throws VatRatesException {
         Scanner scanner = new Scanner(data);
-        scanner.useLocale(Locale.of("cs"));
+        scanner.useLocale(Locale.of("cs", "CZ"));
         scanner.useDelimiter(Settings.getDelimiter());
 
         String codeOfCountry = scanner.next();
@@ -71,18 +89,33 @@ public class VatRatesList {
      * Filters a list of countries.  Only countries over the submitted value
      * and without the special VAT are accepted.
      *
-     * @param vatStd The standard VAT value used for filtering the list.
+     * @param vatStdLimit The standard VAT value used for filtering the list.
      * @return Returns filtered list of countries.
      */
-    public static List<Country> filterVat(List<Country> listOfCountries,
-                                          BigDecimal vatStd) {
+    public static List<Country> filterByVat(List<Country> listOfCountries,
+                                            BigDecimal vatStdLimit) {
         return listOfCountries
                 .stream()
                 .filter(country ->
                         country.getVatStandard()
-                                .compareTo(vatStd) > 0
+                                .compareTo(vatStdLimit) > 0
                                 && !country.hasVatSpecial())
                 .toList();
+    }
+
+    public static Map<Boolean, List<Country>> filterByVatOnePass(
+            List<Country> listOfCountries,
+            BigDecimal vatStdLimit) {
+        return listOfCountries
+                .stream()
+                .collect(Collectors.groupingBy(country -> {
+                    if (country.getVatStandard().compareTo(vatStdLimit) > 0
+                            && !country.hasVatSpecial()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }));
     }
 
     public static List<Country> sortByCode(List<Country> listOfCountries) {
