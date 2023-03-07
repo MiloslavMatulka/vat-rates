@@ -1,6 +1,7 @@
 package com.engeto.vatrates;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -55,7 +56,7 @@ public class VatRates {
 
     public static void printByVatWithOthersAltn(
             Map<Boolean, List<Country>> mapOfCountries,
-            BigDecimal vatStdLimit) {
+            BigDecimal vatStdLimit) throws VatRatesException {
         List<Country> listOverLimit = mapOfCountries.get(true);
         List<Country> sortedListOverLimitDescending =
                 VatRatesList.sortByVatStdDescending(listOverLimit);
@@ -65,8 +66,10 @@ public class VatRates {
         List<Country> listOfOthers = mapOfCountries.get(false);
         List<Country> sortedListOfOthers =
                 VatRatesList.sortByCode(listOfOthers);
+        String vatStdLimitToStr =
+                    Settings.getNumberFormat().format(vatStdLimit);
         System.out.println("====================\n"
-        + "Sazba VAT " + vatStdLimit + " % nebo nižší nebo používají "
+        + "Sazba VAT " + vatStdLimitToStr + " % nebo nižší nebo používají "
         + "speciální sazbu: " +  sortedListOfOthers.stream()
                 .map(Country::getCodeOfCountry)
                         .sorted()
@@ -115,16 +118,22 @@ public class VatRates {
 
             Scanner scanner = new Scanner(System.in);
             System.out.print("Zadej výši sazby DPH/VAT, podle které se má "
-                    + "filtrovat (pro desetinná čísla zadej \".\") >> ");
+                    + "filtrovat >> ");
             String input = scanner.nextLine();
             BigDecimal inputVatLimit = null;
             if (input.isEmpty()) {
                 inputVatLimit = Settings.getVatDefault();
             } else {
                 try {
-                    inputVatLimit = new BigDecimal(input);
-                } catch (NumberFormatException e) {
-                    throw new VatRatesException("Nesprávný formát čísla; "
+                    if (input.contains(",")) {
+                        Number inputToNumber =
+                                Settings.getNumberFormat().parse(input);
+                        inputVatLimit = new BigDecimal(inputToNumber.toString());
+                    } else {
+                        inputVatLimit = new BigDecimal(input);
+                    }
+                } catch (ParseException | NumberFormatException e) {
+                    throw new VatRatesException("Neplatná vstupní hodnota; "
                             + e.getLocalizedMessage());
                 }
             }

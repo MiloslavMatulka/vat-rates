@@ -46,8 +46,10 @@ public class VatRatesList {
             List<Country> listOfOthers = mapOfCountries.get(false);
             List<Country> sortedListOfOthers =
                     VatRatesList.sortByCode(listOfOthers);
+            String vatStdLimitToStr =
+                    Settings.getNumberFormat().format(vatStdLimit);
             writer.println("====================\n"
-                    + "Sazba VAT " + vatStdLimit + " % nebo nižší nebo "
+                    + "Sazba VAT " + vatStdLimitToStr + " % nebo nižší nebo "
                     + "používají speciální sazbu: "
                     +  sortedListOfOthers.stream()
                     .map(Country::getCodeOfCountry)
