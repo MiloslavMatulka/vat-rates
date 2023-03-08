@@ -111,9 +111,11 @@ public class VatRates {
     public static void main(String[] args) {
         Logger logger = Logger.getLogger("VAT rates");
         try {
-            List<Country> listOfCountries = VatRatesList
+            List<Country> importedList = VatRatesList
                     .importFromFile(Constants.getInputFile());
-//            VatRatesList vatRatesList = new VatRatesList(listOfCountries);
+            VatRatesList vatRatesList = new VatRatesList(importedList);
+            List<Country> listOfCountries = vatRatesList.getListOfCountries();
+
             System.out.println("Všechny země:");
             print(listOfCountries);
             System.out.println("---");
