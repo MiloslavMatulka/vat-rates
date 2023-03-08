@@ -30,6 +30,10 @@ public class VatRatesList {
         this.listOfCountries = listOfCountries;
     }
 
+    public void clearListOfCountries(List<Country> listOfCountries) {
+        listOfCountries.clear();
+    }
+
     public static void exportToFile(List<Country> data, BigDecimal vatStdLimit)
             throws VatRatesException {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(
@@ -39,31 +43,23 @@ public class VatRatesList {
                     filterByVatOnePass(data, vatStdLimit);
             List<Country> listOverLimit = mapOfCountries.get(true);
             List<Country> sortedListOverLimitDescending =
-                    VatRatesList.sortByVatStdDescending(listOverLimit);
+                    sortByVatStdDescending(listOverLimit);
             sortedListOverLimitDescending.forEach(country ->
                     writer.println(country.getDescriptionVerbose()));
 
             List<Country> listOfOthers = mapOfCountries.get(false);
-            List<Country> sortedListOfOthers =
-                    VatRatesList.sortByCode(listOfOthers);
-            String vatStdLimitToStr =
-                    Settings.getNumberFormat().format(vatStdLimit);
-            writer.println("====================\n"
-                    + "Sazba VAT " + vatStdLimitToStr + " % nebo nižší nebo "
-                    + "používají speciální sazbu: "
-                    +  sortedListOfOthers.stream()
-                    .map(Country::getCodeOfCountry)
-                    .sorted()
-                    .collect(Collectors.joining(", ")));
+            List<Country> sortedListOfOthers = sortByCode(listOfOthers);
+            writer.println(getStringOfOtherCountries(
+                    sortedListOfOthers, vatStdLimit));
         } catch (IOException e) {
-            throw new VatRatesException(e.getMessage());
+            throw new VatRatesException(e.getLocalizedMessage());
         }
     }
 
-    public static List<Country> importFromFile(String fileName)
+    public static List<Country> importFromFile(String file)
             throws VatRatesException {
         List<Country> list = new ArrayList<>();
-        File input = new File(fileName);
+        File input = new File(file);
         long lineNumber = 0L;
         try (Scanner scanner = new Scanner(input)) {
             while (scanner.hasNextLine()) {
@@ -90,10 +86,10 @@ public class VatRatesList {
         BigDecimal vatStandard = null;
         BigDecimal vatReduced = null;
         try {
-        vatStandard = scanner.nextBigDecimal();
-        vatReduced = scanner.nextBigDecimal();
+            vatStandard = scanner.nextBigDecimal();
+            vatReduced = scanner.nextBigDecimal();
         } catch (InputMismatchException e) {
-            throw new VatRatesException("Nesprávný formát čísla; "
+            throw new VatRatesException("Neplatné číslo; "
                     + e.getLocalizedMessage());
         }
         boolean hasVatSpecial = scanner.nextBoolean();
@@ -103,7 +99,7 @@ public class VatRatesList {
     }
 
     /**
-     * Filters a list of countries.  Only countries over the submitted value
+     * Filters a list of countries. Only countries over the submitted value
      * and without the special VAT are accepted.
      *
      * @param vatStdLimit The standard VAT value used for filtering the list.
@@ -116,10 +112,16 @@ public class VatRatesList {
                 .filter(country ->
                         country.getVatStandard()
                                 .compareTo(vatStdLimit) > 0
-                                && !country.hasVatSpecial())
+                        && !country.hasVatSpecial())
                 .toList();
     }
 
+    /**
+     * Filters a list of countries in one pass. Partitions a list into two
+     * lists. Boolean keys correspond to them in a map.
+     *
+     * @return Returns a map of partitioned lists.
+     */
     public static Map<Boolean, List<Country>> filterByVatOnePass(
             List<Country> listOfCountries,
             BigDecimal vatStdLimit) {
@@ -144,9 +146,23 @@ public class VatRatesList {
     }
 
     public static List<Country> subtractFilteredVat(
-            List<Country> listOfCountries,List<Country> subList) {
+            List<Country> listOfCountries, List<Country> subList) {
         return listOfCountries.stream()
                 .filter(country -> !subList.contains(country))
                 .toList();
+    }
+
+    protected static String getStringOfOtherCountries(
+            List<Country> listOfCountries, BigDecimal vatStdLimit) {
+
+        // Localize the number format
+        String vatStdLimitToStr =
+                Settings.getNumberFormat().format(vatStdLimit);
+        return "====================\n"
+                + "Sazba VAT " + vatStdLimitToStr + " % nebo nižší nebo "
+                + "používají speciální sazbu: "
+                +  listOfCountries.stream()
+                .map(Country::getCodeOfCountry)
+                .collect(Collectors.joining(", "));
     }
 }

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class VatRates {
     public static void print(List<Country> listOfCountries) {
@@ -47,11 +46,8 @@ public class VatRates {
                         sortedListByVatStd);
         List<Country> sortedListByCode =
                 VatRatesList.sortByCode(subtractedList);
-        System.out.println("====================\n"
-                + "Sazba VAT " + vatStd + " % nebo nižší nebo používají "
-                + "speciální sazbu: " + sortedListByCode.stream()
-                .map(Country::getCodeOfCountry)
-                .collect(Collectors.joining(", ")));
+        System.out.println(VatRatesList.getStringOfOtherCountries(
+                sortedListByCode, vatStd));
     }
 
     public static void printByVatWithOthersAltn(
@@ -66,14 +62,8 @@ public class VatRates {
         List<Country> listOfOthers = mapOfCountries.get(false);
         List<Country> sortedListOfOthers =
                 VatRatesList.sortByCode(listOfOthers);
-        String vatStdLimitToStr =
-                    Settings.getNumberFormat().format(vatStdLimit);
-        System.out.println("====================\n"
-        + "Sazba VAT " + vatStdLimitToStr + " % nebo nižší nebo používají "
-        + "speciální sazbu: " +  sortedListOfOthers.stream()
-                .map(Country::getCodeOfCountry)
-                        .sorted()
-                .collect(Collectors.joining(", ")));
+        System.out.println(VatRatesList.getStringOfOtherCountries(
+                sortedListOfOthers, vatStdLimit));
     }
 
     public static void main(String[] args) {
