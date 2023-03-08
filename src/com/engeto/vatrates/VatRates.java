@@ -153,14 +153,15 @@ public class VatRates {
                     + "filtrovat >> ");
             String input = scanner.nextLine();
             BigDecimal inputVatLimit = null;
-            if (input.isEmpty()) {
+            if (input.isBlank()) {
                 inputVatLimit = Constants.getVatDefault();
             } else {
                 try {
                     if (input.contains(",")) {
                         Number inputToNumber =
                                 Constants.getNumberFormat().parse(input);
-                        inputVatLimit = new BigDecimal(inputToNumber.toString());
+                        inputVatLimit =
+                                new BigDecimal(inputToNumber.toString());
                     } else {
                         inputVatLimit = new BigDecimal(input);
                     }
