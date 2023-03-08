@@ -8,12 +8,29 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Application that extracts information about VAT rates of countries defined
+ * in a file.
+ */
 public class VatRates {
+
+    /**
+     * Prints the description of all countries imported from a file.
+     *
+     * @param listOfCountries list of countries
+     */
     public static void print(List<Country> listOfCountries) {
         listOfCountries.forEach(country ->
                 System.out.println(country.getDescription()));
     }
 
+    /**
+     * Prints the description of an unsorted list of countries filtered
+     * by the passed standard VAT.
+     *
+     * @param listOfCountries list of countries
+     * @param vatStd standard VAT rate used for filtering the list
+     */
     public static void printByVat(List<Country> listOfCountries,
                                            BigDecimal vatStd) {
         List<Country> filteredList =
@@ -22,6 +39,13 @@ public class VatRates {
                 System.out.println(country.getDescription()));
     }
 
+    /**
+     * Prints the description of a list of countries filtered by the passed
+     * standard VAT, sorted in descending order.
+     *
+     * @param listOfCountries list of countries
+     * @param vatStd standard VAT rate used for filtering the list
+     */
     public static void printByVatDescending(List<Country> listOfCountries,
                                   BigDecimal vatStd) {
         List<Country> filteredList =
@@ -32,6 +56,15 @@ public class VatRates {
                 System.out.println(country.getDescription()));
     }
 
+    /**
+     * Prints the description of a list of countries filtered by the passed
+     * standard VAT, sorted in descending order, and a list of other countries
+     * codes sorted in ascending order.
+     * 2-pass implementation of partitioning of countries.
+     *
+     * @param listOfCountries list of countries
+     * @param vatStd standard VAT rate used for filtering the list
+     */
     public static void printByVatWithOthers(List<Country> listOfCountries,
                                             BigDecimal vatStd) {
         List<Country> filteredList =
@@ -50,9 +83,18 @@ public class VatRates {
                 sortedListByCode, vatStd));
     }
 
+    /**
+     * Prints the description of a list of countries filtered by the passed
+     * standard VAT, sorted in descending order, and a list of other countries
+     * codes sorted in ascending order.
+     * Alternative 1-pass implementation of partitioning of countries.
+     *
+     * @param mapOfCountries list of countries
+     * @param vatStdLimit standard VAT rate used for filtering the list
+     */
     public static void printByVatWithOthersAltn(
             Map<Boolean, List<Country>> mapOfCountries,
-            BigDecimal vatStdLimit) throws VatRatesException {
+            BigDecimal vatStdLimit) {
         List<Country> listOverLimit = mapOfCountries.get(true);
         List<Country> sortedListOverLimitDescending =
                 VatRatesList.sortByVatStdDescending(listOverLimit);
@@ -70,7 +112,7 @@ public class VatRates {
         Logger logger = Logger.getLogger("VAT rates");
         try {
             List<Country> listOfCountries = VatRatesList
-                    .importFromFile(Settings.getInputFile());
+                    .importFromFile(Constants.getInputFile());
 //            VatRatesList vatRatesList = new VatRatesList(listOfCountries);
             System.out.println("Všechny země:");
             print(listOfCountries);
@@ -78,18 +120,18 @@ public class VatRates {
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně:");
-            printByVat(listOfCountries, Settings.getVatDefault());
+            printByVat(listOfCountries, Constants.getVatDefault());
             System.out.println("---");
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně:");
-            printByVatDescending(listOfCountries, Settings.getVatDefault());
+            printByVatDescending(listOfCountries, Constants.getVatDefault());
             System.out.println("---");
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
                     + "sazby daně, sestupně, seznam zkratek, které ve výpisu "
                     + "nefigurují, vzestupně:");
-            printByVatWithOthers(listOfCountries, Settings.getVatDefault());
+            printByVatWithOthers(listOfCountries, Constants.getVatDefault());
             System.out.println("---");
 
             System.out.println("Země s DPH vyšší než 20 % a bez speciální "
@@ -97,13 +139,13 @@ public class VatRates {
                     + "nefigurují, vzestupně, státy rozděleny na 1 průchod:");
             printByVatWithOthersAltn(
                     VatRatesList.filterByVatOnePass(listOfCountries,
-                            Settings.getVatDefault()),
-                    Settings.getVatDefault());
+                            Constants.getVatDefault()),
+                    Constants.getVatDefault());
             System.out.println("---");
 
             System.out.println("Exporting an extract to file \""
-                    + Settings.getResourcesPath() + "vat-over-20.txt\"");
-            VatRatesList.exportToFile(listOfCountries, Settings.getVatDefault());
+                    + Constants.getResourcesPath() + "vat-over-20.txt\"");
+            VatRatesList.exportToFile(listOfCountries, Constants.getVatDefault());
             System.out.println("---");
 
             Scanner scanner = new Scanner(System.in);
@@ -112,12 +154,12 @@ public class VatRates {
             String input = scanner.nextLine();
             BigDecimal inputVatLimit = null;
             if (input.isEmpty()) {
-                inputVatLimit = Settings.getVatDefault();
+                inputVatLimit = Constants.getVatDefault();
             } else {
                 try {
                     if (input.contains(",")) {
                         Number inputToNumber =
-                                Settings.getNumberFormat().parse(input);
+                                Constants.getNumberFormat().parse(input);
                         inputVatLimit = new BigDecimal(inputToNumber.toString());
                     } else {
                         inputVatLimit = new BigDecimal(input);

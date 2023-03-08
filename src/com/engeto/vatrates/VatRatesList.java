@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+/**
+ * Stores a list of countries and enables operations over the list.
+ */
 public class VatRatesList {
     private List<Country> listOfCountries;
 
@@ -34,10 +37,23 @@ public class VatRatesList {
         listOfCountries.clear();
     }
 
+    /**
+     * Exports data extracted from a list of countries in a defined file.
+     * It partitions the list according to the standard VAT rate:
+     * - countries over the passed value and with no special VAT in descending
+     *   order;
+     * - codes of other countries in ascending order.
+     *
+     * @param data list of countries that needs to be partitioned and exported
+     *             to a file
+     * @param vatStdLimit VAT standard limit that is used for filtering
+     *                    the list of countries
+     * @throws VatRatesException if IOException is thrown
+     */
     public static void exportToFile(List<Country> data, BigDecimal vatStdLimit)
             throws VatRatesException {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(
-                new FileWriter(Settings.getResourcesPath()
+                new FileWriter(Constants.getResourcesPath()
                         + "vat-over-" + vatStdLimit + ".txt")))) {
             Map<Boolean, List<Country>> mapOfCountries =
                     filterByVatOnePass(data, vatStdLimit);
@@ -78,8 +94,8 @@ public class VatRatesList {
 
     public static Country parseCountry(String data) throws VatRatesException {
         Scanner scanner = new Scanner(data);
-        scanner.useLocale(Settings.getLocale());
-        scanner.useDelimiter(Settings.getDelimiter());
+        scanner.useLocale(Constants.getLocale());
+        scanner.useDelimiter(Constants.getDelimiter());
 
         String codeOfCountry = scanner.next();
         String nameOfCountry = scanner.next();
@@ -102,8 +118,8 @@ public class VatRatesList {
      * Filters a list of countries. Only countries over the submitted value
      * and without the special VAT are accepted.
      *
-     * @param vatStdLimit The standard VAT value used for filtering the list.
-     * @return Returns filtered list of countries.
+     * @param vatStdLimit the standard VAT value used for filtering the list
+     * @return filtered list of countries
      */
     public static List<Country> filterByVat(List<Country> listOfCountries,
                                             BigDecimal vatStdLimit) {
@@ -120,7 +136,7 @@ public class VatRatesList {
      * Filters a list of countries in one pass. Partitions a list into two
      * lists. Boolean keys correspond to them in a map.
      *
-     * @return Returns a map of partitioned lists.
+     * @return map of partitioned lists of countries
      */
     public static Map<Boolean, List<Country>> filterByVatOnePass(
             List<Country> listOfCountries,
@@ -132,6 +148,12 @@ public class VatRatesList {
                         && !country.hasVatSpecial()));
     }
 
+    /**
+     * Sorts a list of countries by code of countries in ascending order.
+     *
+     * @param listOfCountries list of countries to be sorted
+     * @return sorted list of countries in ascending order
+     */
     public static List<Country> sortByCode(List<Country> listOfCountries) {
         return listOfCountries.stream()
                 .sorted(Comparator.comparing(Country::getCodeOfCountry))
@@ -145,6 +167,14 @@ public class VatRatesList {
                         .reversed()).toList();
     }
 
+    /**
+     * Subtracts a list of countries from the initial one.
+     *
+     * @param listOfCountries list of countries that needs to be filtered
+     * @param subList list of countries that is to be subtracted
+     * @return list of countries that are not contained in the
+     *         initial list
+     */
     public static List<Country> subtractFilteredVat(
             List<Country> listOfCountries, List<Country> subList) {
         return listOfCountries.stream()
@@ -152,12 +182,20 @@ public class VatRatesList {
                 .toList();
     }
 
+    /**
+     * Gets a specific String that is not considered to be used outside
+     * the package. Localizes the number format to work with defined Locale.
+     *
+     * @param listOfCountries list of countries to be converted in a String
+     *                        of countries codes
+     * @param vatStdLimit standard VAT that is a part of the resulting String
+     * @return String of countries codes
+     */
     protected static String getStringOfOtherCountries(
             List<Country> listOfCountries, BigDecimal vatStdLimit) {
 
-        // Localize the number format
         String vatStdLimitToStr =
-                Settings.getNumberFormat().format(vatStdLimit);
+                Constants.getNumberFormat().format(vatStdLimit);
         return "====================\n"
                 + "Sazba VAT " + vatStdLimitToStr + " % nebo nižší nebo "
                 + "používají speciální sazbu: "

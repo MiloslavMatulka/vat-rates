@@ -2,6 +2,9 @@ package com.engeto.vatrates;
 
 import java.math.BigDecimal;
 
+/**
+ * Represents VAT types used in a specific country.
+ */
 public class Country {
 
     //region Attributes
@@ -66,12 +69,12 @@ public class Country {
 
     public String getDescription() {
         return getNameOfCountry() + " (" + getCodeOfCountry() + "): "
-                + Settings.getNumberFormat().format(getVatStandard()) + " %";
+                + Constants.getNumberFormat().format(getVatStandard()) + " %";
     }
 
     public String getDescriptionVerbose() {
         return getNameOfCountry() + " (" + getCodeOfCountry() + "): "
-                + Settings.getNumberFormat().format(getVatStandard()) + " % ("
-                + Settings.getNumberFormat().format(getVatReduced()) + " %)";
+                + Constants.getNumberFormat().format(getVatStandard()) + " % ("
+                + Constants.getNumberFormat().format(getVatReduced()) + " %)";
     }
 }

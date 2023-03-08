@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public class Settings {
+/**
+ * Collected constants of general utility.
+ */
+public class Constants {
     private static final String DELIMITER = "\t";
     private static final String INPUT_FILE = getResourcesPath() + "vat-eu.csv";
     private static final Locale LOCALE = Locale.of("cs", "CZ");
