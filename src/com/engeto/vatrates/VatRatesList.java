@@ -73,7 +73,7 @@ public class VatRatesList {
         }
     }
 
-    public static List<Country> importFromFile(String file)
+    public static List<Country> importFromFile(String file, String delimiter)
             throws VatRatesException {
         List<Country> list = new ArrayList<>();
         File input = new File(file);
@@ -82,7 +82,7 @@ public class VatRatesList {
             while (scanner.hasNextLine()) {
                 ++lineNumber;
                 String record = scanner.nextLine();
-                list.add(parseCountry(record));
+                list.add(parseCountry(record, delimiter));
             }
         } catch (FileNotFoundException e) {
             throw new VatRatesException("Chyba při načítání souboru: "
@@ -94,10 +94,11 @@ public class VatRatesList {
         return list;
     }
 
-    public static Country parseCountry(String data) throws VatRatesException {
+    public static Country parseCountry(String data, String delimiter)
+            throws VatRatesException {
         Scanner scanner = new Scanner(data);
         scanner.useLocale(Constants.getLocale());
-        scanner.useDelimiter(Constants.getDelimiter());
+        scanner.useDelimiter(delimiter);
 
         String codeOfCountry = scanner.next();
         String nameOfCountry = scanner.next();

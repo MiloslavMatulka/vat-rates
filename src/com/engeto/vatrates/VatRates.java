@@ -112,46 +112,57 @@ public class VatRates {
         Logger logger = Logger.getLogger("VAT rates");
         try {
             List<Country> importedList = VatRatesList
-                    .importFromFile(Constants.getInputFile());
+                    .importFromFile(Constants.getInputFile(),
+                            Constants.getDelimiter());
             VatRatesList vatRatesList = new VatRatesList(importedList);
             List<Country> listOfCountries = vatRatesList.getListOfCountries();
 
-            System.out.println("Všechny země:");
+            System.out.println("Třídění států EU podle DPH/VAT");
+            System.out.println("1. Vypiš šechny země:");
             print(listOfCountries);
-            System.out.println("---");
+            String taskSeparator = "---";
+            System.out.println(taskSeparator);
 
-            System.out.println("Země s DPH vyšší než 20 % a bez speciální "
-                    + "sazby daně:");
+            System.out.println("2. Vypiš země s DPH vyšší než "
+                    + Constants.getVatDefault()
+                    + " % a bez speciální sazby daně:");
             printByVat(listOfCountries, Constants.getVatDefault());
-            System.out.println("---");
+            System.out.println(taskSeparator);
 
-            System.out.println("Země s DPH vyšší než 20 % a bez speciální "
-                    + "sazby daně, sestupně:");
+            System.out.println("3. Vypiš země s DPH vyšší než "
+                    + Constants.getVatDefault()
+                    + " % a bez speciální sazby daně, sestupně:");
             printByVatDescending(listOfCountries, Constants.getVatDefault());
-            System.out.println("---");
+            System.out.println(taskSeparator);
 
-            System.out.println("Země s DPH vyšší než 20 % a bez speciální "
-                    + "sazby daně, sestupně, seznam zkratek, které ve výpisu "
-                    + "nefigurují, vzestupně:");
+            System.out.println("4. Vypiš země s DPH vyšší než "
+                    + Constants.getVatDefault()
+                    + " % a bez speciální sazby daně, sestupně, "
+                    + "seznam zkratek, které ve výpisu nefigurují, "
+                    + "vzestupně:");
             printByVatWithOthers(listOfCountries, Constants.getVatDefault());
-            System.out.println("---");
+            System.out.println(taskSeparator);
 
-            System.out.println("Země s DPH vyšší než 20 % a bez speciální "
-                    + "sazby daně, sestupně, seznam zkratek, které ve výpisu "
-                    + "nefigurují, vzestupně, státy rozděleny na 1 průchod:");
+            System.out.println("5. Vypiš země s DPH vyšší než "
+                    + Constants.getVatDefault()
+                    + " % a bez speciální sazby daně, sestupně, "
+                    + "seznam zkratek, které ve výpisu nefigurují, vzestupně, "
+                    + "státy rozděleny na 1 průchod:");
             printByVatWithOthersAltn(
                     VatRatesList.filterByVatOnePass(listOfCountries,
                             Constants.getVatDefault()),
                     Constants.getVatDefault());
-            System.out.println("---");
+            System.out.println(taskSeparator);
 
-            System.out.println("Exporting an extract to file \""
-                    + Constants.getResourcesPath() + "vat-over-20.txt\"");
-            VatRatesList.exportToFile(listOfCountries, Constants.getVatDefault());
-            System.out.println("---");
+            System.out.println("6. Exportuj výpis do souboru \""
+                    + Constants.getResourcesPath()
+                    + "vat-over-" + Constants.getVatDefault() + ".txt\"");
+            VatRatesList
+                    .exportToFile(listOfCountries, Constants.getVatDefault());
+            System.out.println(taskSeparator);
 
             Scanner scanner = new Scanner(System.in);
-            System.out.print("Zadej výši sazby DPH/VAT, podle které se má "
+            System.out.print("7. Zadej výši sazby DPH/VAT, podle které se má "
                     + "filtrovat >> ");
             String input = scanner.nextLine();
             BigDecimal inputVatLimit = null;
@@ -176,6 +187,11 @@ public class VatRates {
                     VatRatesList.filterByVatOnePass(listOfCountries,
                             inputVatLimit),
                     inputVatLimit);
+            System.out.println(taskSeparator);
+
+            System.out.println("8. Exportuj výpis do souboru \""
+                    + Constants.getResourcesPath()
+                    + "vat-over-" + inputVatLimit + ".txt\"");
             VatRatesList.exportToFile(listOfCountries, inputVatLimit);
         } catch (VatRatesException e) {
             logger.log(Level.WARNING, e.getClass().getName() + ": "
