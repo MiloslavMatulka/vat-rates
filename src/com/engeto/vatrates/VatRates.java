@@ -168,7 +168,7 @@ public class VatRates {
                         inputVatLimit = new BigDecimal(input);
                     }
                 } catch (ParseException | NumberFormatException e) {
-                    throw new VatRatesException("Neplatná vstupní hodnota; "
+                    throw new VatRatesException("Neplatná vstupní hodnota: "
                             + e.getLocalizedMessage());
                 }
             }

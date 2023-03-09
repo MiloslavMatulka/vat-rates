@@ -68,7 +68,8 @@ public class VatRatesList {
             writer.println(getStringOfOtherCountries(
                     sortedListOfOthers, vatStdLimit));
         } catch (IOException e) {
-            throw new VatRatesException(e.getLocalizedMessage());
+            throw new VatRatesException("Chyba při exportu do souboru: "
+                    + e.getLocalizedMessage());
         }
     }
 
@@ -84,7 +85,8 @@ public class VatRatesList {
                 list.add(parseCountry(record));
             }
         } catch (FileNotFoundException e) {
-            throw new VatRatesException(e.getLocalizedMessage());
+            throw new VatRatesException("Chyba při načítání souboru: "
+                    + e.getLocalizedMessage());
         } catch (VatRatesException e) {
             throw new VatRatesException(e.getLocalizedMessage()
                     + ", řádek souboru č. " + lineNumber);
@@ -105,7 +107,7 @@ public class VatRatesList {
             vatStandard = scanner.nextBigDecimal();
             vatReduced = scanner.nextBigDecimal();
         } catch (InputMismatchException e) {
-            throw new VatRatesException("Neplatné číslo; "
+            throw new VatRatesException("Neplatné číslo: "
                     + e.getLocalizedMessage());
         }
         boolean hasVatSpecial = scanner.nextBoolean();
