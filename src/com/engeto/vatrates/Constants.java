@@ -18,6 +18,7 @@ public class Constants {
     private static final String RESOURCES_PATH = "." + getPathSeparator()
             + "res" + getPathSeparator();
     private static final String INPUT_FILE = getResourcesPath() + "vat-eu.csv";
+    private static final String TASK_SEPARATOR = "---";
     private static final BigDecimal VAT_DEFAULT = new BigDecimal(20);
 
     //region Getters
@@ -43,6 +44,10 @@ public class Constants {
 
     public static String getResourcesPath() {
         return RESOURCES_PATH;
+    }
+
+    public static String getTaskSeparator() {
+        return TASK_SEPARATOR;
     }
 
     public static BigDecimal getVatDefault() {

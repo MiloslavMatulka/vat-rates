@@ -11,8 +11,35 @@ import java.util.logging.Logger;
 /**
  * Application that extracts information about VAT rates of countries defined
  * in a file.
+ *
+ * @author Miloslav Matulka (Discord tag Miloslav#8572)
  */
 public class VatRates {
+    public static BigDecimal inputVatStdLimit() throws VatRatesException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Zadej výši sazby DPH/VAT, podle které se má "
+                + "filtrovat >> ");
+        String input = scanner.nextLine();
+        BigDecimal inputVatStdLimit = null;
+        if (input.isBlank()) {
+            inputVatStdLimit = Constants.getVatDefault();
+        } else {
+            try {
+                if (input.contains(",")) {
+                    Number inputToNumber =
+                            Constants.getNumberFormat().parse(input);
+                    inputVatStdLimit =
+                            new BigDecimal(inputToNumber.toString());
+                } else {
+                    inputVatStdLimit = new BigDecimal(input);
+                }
+            } catch (ParseException | NumberFormatException e) {
+                throw new VatRatesException("Neplatná vstupní hodnota: "
+                        + e.getLocalizedMessage());
+            }
+        }
+        return inputVatStdLimit;
+    }
 
     /**
      * Prints the description of all countries imported from a file.
@@ -20,8 +47,10 @@ public class VatRates {
      * @param listOfCountries list of countries
      */
     public static void print(List<Country> listOfCountries) {
+        System.out.println("Vypiš šechny země:");
         listOfCountries.forEach(country ->
                 System.out.println(country.getDescription()));
+        System.out.println(Constants.getTaskSeparator());
     }
 
     /**
@@ -29,14 +58,18 @@ public class VatRates {
      * by the passed standard VAT.
      *
      * @param listOfCountries list of countries
-     * @param vatStd standard VAT rate used for filtering the list
+     * @param vatStdLimit standard VAT rate used for filtering the list
      */
     public static void printByVat(List<Country> listOfCountries,
-                                           BigDecimal vatStd) {
+                                           BigDecimal vatStdLimit) {
+        System.out.println("Vypiš země s DPH vyšší než "
+                + Constants.getNumberFormat().format(vatStdLimit)
+                + " % a bez speciální sazby daně:");
         List<Country> filteredList =
-                VatRatesList.filterByVat(listOfCountries, vatStd);
+                VatRatesList.filterByVat(listOfCountries, vatStdLimit);
         filteredList.forEach(country ->
                 System.out.println(country.getDescription()));
+        System.out.println(Constants.getTaskSeparator());
     }
 
     /**
@@ -44,16 +77,20 @@ public class VatRates {
      * standard VAT, sorted in descending order.
      *
      * @param listOfCountries list of countries
-     * @param vatStd standard VAT rate used for filtering the list
+     * @param vatStdLimit standard VAT rate used for filtering the list
      */
     public static void printByVatDescending(List<Country> listOfCountries,
-                                  BigDecimal vatStd) {
+                                  BigDecimal vatStdLimit) {
+        System.out.println("Vypiš země s DPH vyšší než "
+                + Constants.getNumberFormat().format(vatStdLimit)
+                + " % a bez speciální sazby daně, sestupně:");
         List<Country> filteredList =
-                VatRatesList.filterByVat(listOfCountries, vatStd);
+                VatRatesList.filterByVat(listOfCountries, vatStdLimit);
         List<Country> sortedListByVatStd =
                 VatRatesList.sortByVatStdDescending(filteredList);
         sortedListByVatStd.forEach(country ->
                 System.out.println(country.getDescription()));
+        System.out.println(Constants.getTaskSeparator());
     }
 
     /**
@@ -63,12 +100,17 @@ public class VatRates {
      * 2-pass implementation of partitioning of countries.
      *
      * @param listOfCountries list of countries
-     * @param vatStd standard VAT rate used for filtering the list
+     * @param vatStdLimit standard VAT rate used for filtering the list
      */
     public static void printByVatWithOthers(List<Country> listOfCountries,
-                                            BigDecimal vatStd) {
+                                            BigDecimal vatStdLimit) {
+        System.out.println("Vypiš země s DPH vyšší než "
+                + Constants.getNumberFormat().format(vatStdLimit)
+                + " % a bez speciální sazby daně, sestupně, "
+                + "seznam zkratek, které ve výpisu nefigurují, "
+                + "vzestupně:");
         List<Country> filteredList =
-                VatRatesList.filterByVat(listOfCountries, vatStd);
+                VatRatesList.filterByVat(listOfCountries, vatStdLimit);
         List<Country> sortedListByVatStd =
                 VatRatesList.sortByVatStdDescending(filteredList);
         sortedListByVatStd.forEach(country ->
@@ -80,7 +122,8 @@ public class VatRates {
         List<Country> sortedListByCode =
                 VatRatesList.sortByCode(subtractedList);
         System.out.println(VatRatesList.getStringOfOtherCountries(
-                sortedListByCode, vatStd));
+                sortedListByCode, vatStdLimit));
+        System.out.println(Constants.getTaskSeparator());
     }
 
     /**
@@ -95,6 +138,11 @@ public class VatRates {
     public static void printByVatWithOthersAltn(
             Map<Boolean, List<Country>> mapOfCountries,
             BigDecimal vatStdLimit) {
+        System.out.println("Vypiš země s DPH vyšší než "
+                + Constants.getNumberFormat().format(vatStdLimit)
+                + " % a bez speciální sazby daně, sestupně, "
+                + "seznam zkratek, které ve výpisu nefigurují, vzestupně, "
+                + "státy rozděleny na 1 průchod:");
         List<Country> listOverLimit = mapOfCountries.get(true);
         List<Country> sortedListOverLimitDescending =
                 VatRatesList.sortByVatStdDescending(listOverLimit);
@@ -106,6 +154,19 @@ public class VatRates {
                 VatRatesList.sortByCode(listOfOthers);
         System.out.println(VatRatesList.getStringOfOtherCountries(
                 sortedListOfOthers, vatStdLimit));
+        System.out.println(Constants.getTaskSeparator());
+    }
+
+    public static void printToFile(List<Country> listOfCountries,
+                                   BigDecimal vatStdLimit)
+            throws VatRatesException {
+        System.out.println("Exportuj výpis do souboru \""
+                + Constants.getResourcesPath()
+                + "vat-over-" + vatStdLimit + ".txt\"");
+        VatRatesList
+                .exportToFile(listOfCountries, vatStdLimit);
+        System.out.println(Constants.getTaskSeparator());
+
     }
 
     public static void main(String[] args) {
@@ -118,81 +179,29 @@ public class VatRates {
             List<Country> listOfCountries = vatRatesList.getListOfCountries();
 
             System.out.println("Třídění států EU podle DPH/VAT");
-            System.out.println("1. Vypiš šechny země:");
             print(listOfCountries);
-            String taskSeparator = "---";
-            System.out.println(taskSeparator);
 
-            System.out.println("2. Vypiš země s DPH vyšší než "
-                    + Constants.getVatDefault()
-                    + " % a bez speciální sazby daně:");
-            printByVat(listOfCountries, Constants.getVatDefault());
-            System.out.println(taskSeparator);
+            BigDecimal vatStdLimit = Constants.getVatDefault();
+            printByVat(listOfCountries, vatStdLimit);
 
-            System.out.println("3. Vypiš země s DPH vyšší než "
-                    + Constants.getVatDefault()
-                    + " % a bez speciální sazby daně, sestupně:");
-            printByVatDescending(listOfCountries, Constants.getVatDefault());
-            System.out.println(taskSeparator);
+            printByVatDescending(listOfCountries, vatStdLimit);
 
-            System.out.println("4. Vypiš země s DPH vyšší než "
-                    + Constants.getVatDefault()
-                    + " % a bez speciální sazby daně, sestupně, "
-                    + "seznam zkratek, které ve výpisu nefigurují, "
-                    + "vzestupně:");
-            printByVatWithOthers(listOfCountries, Constants.getVatDefault());
-            System.out.println(taskSeparator);
+            printByVatWithOthers(listOfCountries, vatStdLimit);
 
-            System.out.println("5. Vypiš země s DPH vyšší než "
-                    + Constants.getVatDefault()
-                    + " % a bez speciální sazby daně, sestupně, "
-                    + "seznam zkratek, které ve výpisu nefigurují, vzestupně, "
-                    + "státy rozděleny na 1 průchod:");
             printByVatWithOthersAltn(
                     VatRatesList.filterByVatOnePass(listOfCountries,
-                            Constants.getVatDefault()),
-                    Constants.getVatDefault());
-            System.out.println(taskSeparator);
+                            vatStdLimit),
+                    vatStdLimit);
 
-            System.out.println("6. Exportuj výpis do souboru \""
-                    + Constants.getResourcesPath()
-                    + "vat-over-" + Constants.getVatDefault() + ".txt\"");
-            VatRatesList
-                    .exportToFile(listOfCountries, Constants.getVatDefault());
-            System.out.println(taskSeparator);
+            printToFile(listOfCountries, vatStdLimit);
 
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("7. Zadej výši sazby DPH/VAT, podle které se má "
-                    + "filtrovat >> ");
-            String input = scanner.nextLine();
-            BigDecimal inputVatLimit = null;
-            if (input.isBlank()) {
-                inputVatLimit = Constants.getVatDefault();
-            } else {
-                try {
-                    if (input.contains(",")) {
-                        Number inputToNumber =
-                                Constants.getNumberFormat().parse(input);
-                        inputVatLimit =
-                                new BigDecimal(inputToNumber.toString());
-                    } else {
-                        inputVatLimit = new BigDecimal(input);
-                    }
-                } catch (ParseException | NumberFormatException e) {
-                    throw new VatRatesException("Neplatná vstupní hodnota: "
-                            + e.getLocalizedMessage());
-                }
-            }
+            vatStdLimit = inputVatStdLimit();
             printByVatWithOthersAltn(
                     VatRatesList.filterByVatOnePass(listOfCountries,
-                            inputVatLimit),
-                    inputVatLimit);
-            System.out.println(taskSeparator);
+                            vatStdLimit),
+                    vatStdLimit);
 
-            System.out.println("8. Exportuj výpis do souboru \""
-                    + Constants.getResourcesPath()
-                    + "vat-over-" + inputVatLimit + ".txt\"");
-            VatRatesList.exportToFile(listOfCountries, inputVatLimit);
+            printToFile(listOfCountries, vatStdLimit);
         } catch (VatRatesException e) {
             logger.log(Level.WARNING, e.getClass().getName() + ": "
                     + e.getLocalizedMessage());
