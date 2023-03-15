@@ -194,7 +194,7 @@ public class VatRatesList {
      * @param vatStdLimit standard VAT that is a part of the resulting String
      * @return String of countries codes
      */
-    protected static String getStringOfOtherCountries(
+    static String getStringOfOtherCountries(
             List<Country> listOfCountries, BigDecimal vatStdLimit) {
 
         String vatStdLimitToStr =
